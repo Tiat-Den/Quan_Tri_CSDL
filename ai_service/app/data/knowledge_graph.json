@@ -1,0 +1,221 @@
+{
+  "chơi game": {
+    "aliases": ["gaming", "chơi game nặng", "fps cao", "game", "chơi game mượt", "bắn pubg", "chơi lol", "game aaa"],
+    "category_weights": {
+      "VGA": 1.0,
+      "CPU": 0.8,
+      "Màn hình": 0.7,
+      "RAM": 0.6,
+      "Bàn phím": 0.4,
+      "Chuột": 0.4,
+      "Nguồn": 0.5,
+      "Tản nhiệt": 0.4
+    },
+    "spec_hints": {
+      "vram": ">=8",
+      "refresh_rate": ">=144"
+    },
+    "keywords": ["rtx", "rx", "144hz", "165hz", "gaming", "fps", "gddr6", "vga"]
+  },
+  "game nặng": {
+    "aliases": ["game aaa", "cyberpunk", "black myth wukong", "game 4k", "chiến game nặng", "max setting"],
+    "category_weights": {
+      "VGA": 1.0,
+      "CPU": 0.9,
+      "Nguồn": 0.7,
+      "RAM": 0.7,
+      "Tản nhiệt": 0.6,
+      "Mainboard": 0.5
+    },
+    "spec_hints": {
+      "vram": ">=12",
+      "wattage": ">=750"
+    },
+    "keywords": ["rtx 4080", "rtx 4090", "4070 ti", "7800x3d", "i7", "i9", "32gb", "750w", "850w"]
+  },
+  "đồ họa": {
+    "aliases": ["thiet ke do hoa", "photoshop", "illustrator", "premiere", "autocad", "thiet ke", "designer", "2d", "3d"],
+    "category_weights": {
+      "Màn hình": 1.0,
+      "VGA": 0.9,
+      "RAM": 0.8,
+      "CPU": 0.8,
+      "SSD": 0.6
+    },
+    "spec_hints": {
+      "panel": "IPS",
+      "srgb": ">=99"
+    },
+    "keywords": ["ips", "chuẩn màu", "2k", "4k", "srgb", "rtx", "32gb", "color"]
+  },
+  "render video": {
+    "aliases": ["render", "dựng phim", "edit video", "render 3d", "blender", "after effects", "da vinci"],
+    "category_weights": {
+      "CPU": 1.0,
+      "RAM": 0.9,
+      "VGA": 0.9,
+      "SSD": 0.8,
+      "Tản nhiệt": 0.7
+    },
+    "spec_hints": {
+      "cores": ">=8",
+      "capacity": ">=32"
+    },
+    "keywords": ["đa nhân", "i7", "i9", "ryzen 7", "ryzen 9", "64gb", "32gb", "nvme", "pcie 4.0"]
+  },
+  "văn phòng": {
+    "aliases": ["office", "word", "excel", "ke toan", "kế toán", "lam viec van phong", "nhẹ nhàng", "lướt web"],
+    "category_weights": {
+      "CPU": 0.8,
+      "RAM": 0.7,
+      "SSD": 0.7,
+      "Màn hình": 0.7,
+      "Bàn phím": 0.6,
+      "Chuột": 0.6
+    },
+    "spec_hints": {},
+    "keywords": ["i3", "12100f", "16gb", "500gb", "ips 24", "tiết kiệm", "êm", "bền"]
+  },
+  "học tập": {
+    "aliases": ["sinh vien", "học sinh", "học online", "hoc tap", "zoom", "teams", "hoc cntt"],
+    "category_weights": {
+      "CPU": 0.8,
+      "RAM": 0.8,
+      "SSD": 0.7,
+      "Màn hình": 0.6,
+      "Bàn phím": 0.5
+    },
+    "spec_hints": {},
+    "keywords": ["giá rẻ", "tiết kiệm", "i3", "i5", "16gb", "ssd 500gb", "bền bỉ"]
+  },
+  "đa nhiệm mượt": {
+    "aliases": ["mo nhieu tab", "chay nhieu app", "chạy nhiều giả lập", "nox", "ldplayer", "may ao", "vmware"],
+    "category_weights": {
+      "RAM": 1.0,
+      "CPU": 0.9,
+      "SSD": 0.7
+    },
+    "spec_hints": {
+      "capacity": ">=32",
+      "threads": ">=16"
+    },
+    "keywords": ["32gb", "64gb", "ddr5", "6000mhz", "nhieu luong", "i7", "ryzen 7"]
+  },
+  "lưu trữ nhiều": {
+    "aliases": ["luu tru nhieu", "dung luong lon", "chua nhieu du lieu", "o cung to", "o cung lon", "kho du lieu"],
+    "category_weights": {
+      "HDD": 1.0,
+      "SSD": 0.8
+    },
+    "spec_hints": {},
+    "keywords": ["hdd", "2tb", "4tb", "ssd 1tb", "ssd 2tb", "seagate", "wd", "toshiba", "dung lượng"]
+  },
+  "lưu trữ dữ liệu": {
+    "aliases": ["luu tru du lieu", "sao luu", "backup", "chua file", "du lieu quan trong"],
+    "category_weights": {
+      "HDD": 1.0,
+      "SSD": 0.8
+    },
+    "spec_hints": {},
+    "keywords": ["hdd", "sao lưu", "backup", "an toàn", "seagate ironwolf", "wd red", "nas"]
+  },
+  "lưu trữ lớn": {
+    "aliases": ["luu tru lon", "o cung khung", "o cung dung luong cao"],
+    "category_weights": {
+      "HDD": 1.0,
+      "SSD": 0.8
+    },
+    "spec_hints": {},
+    "keywords": ["2tb", "4tb", "ssd nvme 2tb", "hdd 4tb", "kho lưu trữ"]
+  },
+  "màn hình đẹp": {
+    "aliases": ["man hinh dep", "man hinh chuan mau", "man hinh net", "man hinh 2k", "man hinh 4k", "man hinh ips"],
+    "category_weights": {
+      "Màn hình": 1.0
+    },
+    "spec_hints": {
+      "panel": "IPS",
+      "resolution": "2K"
+    },
+    "keywords": ["ips", "2k", "4k", "dell ultrasharp", "lg", "srgb 99%", "chống chói"]
+  },
+  "bàn phím gõ sướng": {
+    "aliases": ["ban phim go suong", "ban phim co", "phim go em", "ban phim co tot", "ban phim rgb"],
+    "category_weights": {
+      "Bàn phím": 1.0
+    },
+    "spec_hints": {
+      "switch": "Mechanical"
+    },
+    "keywords": ["bàn phím cơ", "red switch", "akko", "corsair", "dareu", "rgb", "hotswap"]
+  },
+  "tản nhiệt mát": {
+    "aliases": ["tan nhiet mat", "tan nhiet nuoc", "tan nhiet cpu", "may mat", "giam nhiet do"],
+    "category_weights": {
+      "Tản nhiệt": 1.0,
+      "Vỏ case": 0.5
+    },
+    "spec_hints": {},
+    "keywords": ["aio 240mm", "aio 360mm", "deepcool", "thermalright", "nzxt", "nhiệt độ", "êm"]
+  },
+  "nguồn công suất lớn": {
+    "aliases": ["nguon cong suat lon", "nguon 750w", "nguon 850w", "nguon 1000w", "nguon gold"],
+    "category_weights": {
+      "Nguồn": 1.0
+    },
+    "spec_hints": {
+      "wattage": ">=750"
+    },
+    "keywords": ["750w", "850w", "1000w", "seasonic", "corsair", "80 plus gold", "modular"]
+  },
+  "stream": {
+    "aliases": ["livestream", "phát trực tiếp", "streamer", "stream game", "obs", "vtuber"],
+    "category_weights": {
+      "VGA": 1.0,
+      "CPU": 0.9,
+      "RAM": 0.8,
+      "Màn hình": 0.7
+    },
+    "spec_hints": {
+      "vram": ">=8"
+    },
+    "keywords": ["rtx nvenc", "obs", "32gb ram", "2 màn hình", "đa nhiệm", "i7", "ryzen 7"]
+  },
+  "lập trình": {
+    "aliases": ["lap trinh", "coding", "developer", "lap trinh vien", "viet code", "chay docker", "build code"],
+    "category_weights": {
+      "CPU": 1.0,
+      "RAM": 1.0,
+      "SSD": 0.8,
+      "Màn hình": 0.8,
+      "Bàn phím": 0.7
+    },
+    "spec_hints": {
+      "capacity": ">=32"
+    },
+    "keywords": ["ram 32gb", "cpu nhiều nhân", "ssd nvme tốc độ cao", "bàn phím cơ", "màn hình dọc 2k"]
+  },
+  "máy chủ nhỏ/nas": {
+    "aliases": ["nas", "server gia dinh", "home server", "chay 24/7", "may chu mini"],
+    "category_weights": {
+      "HDD": 1.0,
+      "RAM": 0.8,
+      "CPU": 0.7,
+      "Nguồn": 0.7
+    },
+    "spec_hints": {},
+    "keywords": ["nas", "chạy liên tục 24/7", "ecc", "hdd chuyên dụng", "tiết kiệm điện"]
+  },
+  "ngân sách thấp": {
+    "aliases": ["gia re", "ngan sach it", "it tien", "tiet kiem", "p/p cao", "ngon bo re", "chi phi thap"],
+    "category_weights": {
+      "CPU": 0.8,
+      "VGA": 0.7,
+      "Mainboard": 0.7,
+      "RAM": 0.7,
+      "Nguồn": 0.7
+    },
+    "spec_hints": {},
+    "keywords": ["i3", "h610", "gtx 1650", "rx 6600", "ram 8gb", "nguồn 500w", "giá rẻ"]
+  }
+}

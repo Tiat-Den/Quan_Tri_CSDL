@@ -1,0 +1,156 @@
+[
+  {
+    "id": 1,
+    "query": "Tìm cấu hình chơi game nặng mượt mà",
+    "expected_categories": ["VGA", "CPU", "RAM", "Màn hình"],
+    "spec_predicate": "vram>=8",
+    "budget": null
+  },
+  {
+    "id": 2,
+    "query": "Cần màn hình đẹp chuẩn màu thiết kế đồ họa",
+    "expected_categories": ["Màn hình"],
+    "spec_predicate": "panel:IPS",
+    "budget": null
+  },
+  {
+    "id": 3,
+    "query": "Tư vấn CPU và RAM cho render video 4K",
+    "expected_categories": ["CPU", "RAM", "VGA"],
+    "spec_predicate": "cores>=8",
+    "budget": null
+  },
+  {
+    "id": 4,
+    "query": "Linh kiện văn phòng gõ word excel nhẹ nhàng",
+    "expected_categories": ["CPU", "RAM", "SSD", "Bàn phím", "Chuột"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 5,
+    "query": "Tìm bàn phím cơ gõ sướng có led rgb",
+    "expected_categories": ["Bàn phím"],
+    "spec_predicate": "switch:Mechanical",
+    "budget": null
+  },
+  {
+    "id": 6,
+    "query": "Tản nhiệt nước cpu mát êm cho máy tính",
+    "expected_categories": ["Tản nhiệt"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 7,
+    "query": "Nguồn công suất lớn 750w 850w chuẩn gold",
+    "expected_categories": ["Nguồn"],
+    "spec_predicate": "wattage>=750",
+    "budget": null
+  },
+  {
+    "id": 8,
+    "query": "Ổ cứng dung lượng lớn lưu trữ nhiều dữ liệu",
+    "expected_categories": ["HDD", "SSD"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 9,
+    "query": "Card đồ họa chơi game fps cao 144hz",
+    "expected_categories": ["VGA", "Màn hình"],
+    "spec_predicate": "vram>=8",
+    "budget": null
+  },
+  {
+    "id": 10,
+    "query": "Bộ nhớ RAM 32gb ddr5 cho đa nhiệm mượt",
+    "expected_categories": ["RAM"],
+    "spec_predicate": "capacity>=32",
+    "budget": null
+  },
+  {
+    "id": 11,
+    "query": "Cần máy làm livestream phát trực tiếp obs",
+    "expected_categories": ["VGA", "CPU", "RAM"],
+    "spec_predicate": "vram>=8",
+    "budget": null
+  },
+  {
+    "id": 12,
+    "query": "Cấu hình cho lập trình viên chạy docker",
+    "expected_categories": ["RAM", "CPU", "SSD"],
+    "spec_predicate": "capacity>=32",
+    "budget": null
+  },
+  {
+    "id": 13,
+    "query": "Ổ cứng lưu trữ máy chủ nas chạy liên tục",
+    "expected_categories": ["HDD"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 14,
+    "query": "Linh kiện giá rẻ tiết kiệm ngân sách thấp",
+    "expected_categories": ["CPU", "VGA", "Mainboard", "RAM"],
+    "spec_predicate": null,
+    "budget": 5000000
+  },
+  {
+    "id": 15,
+    "query": "tim card man hinh gaming choi game",
+    "expected_categories": ["VGA"],
+    "spec_predicate": "vram>=8",
+    "budget": null
+  },
+  {
+    "id": 16,
+    "query": "man hinh dell 2k ips sieu net",
+    "expected_categories": ["Màn hình"],
+    "spec_predicate": "panel:IPS",
+    "budget": null
+  },
+  {
+    "id": 17,
+    "query": "chuot khong day dpi cao choi game fps",
+    "expected_categories": ["Chuột"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 18,
+    "query": "ssd nvme toc do doc ghi cao",
+    "expected_categories": ["SSD"],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 19,
+    "query": "mainboard ho tro wifi kem socket am5",
+    "expected_categories": ["Mainboard"],
+    "spec_predicate": "socket:AM5",
+    "budget": null
+  },
+  {
+    "id": 20,
+    "query": "Card vga rtx4070 ti cho game 4k",
+    "expected_categories": ["VGA"],
+    "spec_predicate": "vram>=12",
+    "budget": null
+  },
+  {
+    "id": 21,
+    "query": "thời tiết hôm nay thế nào",
+    "expected_categories": [],
+    "spec_predicate": null,
+    "budget": null
+  },
+  {
+    "id": 22,
+    "query": "mua vé máy bay đi hà nội",
+    "expected_categories": [],
+    "spec_predicate": null,
+    "budget": null
+  }
+]

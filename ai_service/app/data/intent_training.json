@@ -1,0 +1,180 @@
+{
+  "_mo_ta": "Dữ liệu huấn luyện bộ phân loại ý định học máy (TF-IDF + Logistic Regression) dùng làm dự phòng khi bộ luật regex không nhận diện được câu hỏi. Mỗi intent gồm các câu diễn đạt lại KHÁC với từ khóa trong regex để mô hình học được cách hỏi đa dạng. Lớp OUT_OF_SCOPE giúp mô hình biết từ chối câu ngoài phạm vi.",
+  "COUNT_ORDERS": [
+    "cửa hàng đã nhận tổng cộng mấy đơn",
+    "số lượng đơn đặt hàng hiện có là bao nhiêu",
+    "tính giúp tôi tổng số đơn mua",
+    "hệ thống ghi nhận được mấy lượt đặt hàng",
+    "cho biết số đơn khách đã đặt",
+    "tổng lượng đơn đến giờ là bao nhiêu",
+    "có tất cả mấy order",
+    "đã bán được bao nhiêu lượt đơn rồi",
+    "thống kê số lượng order",
+    "tổng số giao dịch đặt hàng"
+  ],
+  "LOW_STOCK": [
+    "mặt hàng nào cần nhập thêm",
+    "sản phẩm nào trong kho còn ít",
+    "linh kiện nào sắp cạn kho",
+    "món nào cần bổ sung hàng gấp",
+    "những sản phẩm có số lượng tồn ít ỏi",
+    "kho còn ít hàng ở những mã nào",
+    "cảnh báo hàng sắp không đủ bán",
+    "danh sách cần đặt thêm hàng gấp",
+    "sản phẩm nào gần hết trong kho",
+    "những món hàng còn lại rất ít"
+  ],
+  "ORDERS_COUNT_BY_STATUS": [
+    "mỗi tình trạng đơn có bao nhiêu đơn",
+    "phân loại đơn theo tình trạng xử lý",
+    "bao nhiêu đơn đang ở từng giai đoạn",
+    "tỷ lệ đơn hoàn tất so với đơn hủy và đang xử lý",
+    "đơn được chia theo trạng thái như thế nào",
+    "thống kê tình trạng các đơn",
+    "cơ cấu đơn hàng theo tình trạng",
+    "số lượng đơn ứng với mỗi trạng thái xử lý"
+  ],
+  "ORDERS_BY_CHANNEL": [
+    "bán online hay tại quầy nhiều đơn hơn",
+    "đơn đến từ nền tảng nào nhiều nhất",
+    "so sánh doanh số giữa các sàn thương mại điện tử",
+    "nguồn đơn hàng từ đâu là chủ yếu",
+    "mạng xã hội mang về bao nhiêu đơn",
+    "các nền tảng bán hàng đóng góp ra sao",
+    "bán trên sàn với bán trực tiếp cái nào hơn",
+    "đơn hàng chia theo nguồn bán"
+  ],
+  "PAYMENT_METHODS_STATS": [
+    "khách hay trả tiền bằng cách nào",
+    "khách thích trả kiểu gì nhất",
+    "tỷ lệ khách trả góp so với trả thẳng",
+    "các kiểu trả tiền được dùng bao nhiêu lần",
+    "khách dùng momo hay quẹt thẻ nhiều hơn",
+    "thống kê cách khách hàng chi trả",
+    "hình thức trả tiền phổ biến nhất",
+    "người mua thường trả tiền qua đâu"
+  ],
+  "CUSTOMERS_BY_CITY": [
+    "khách ở đâu mua nhiều nhất",
+    "người mua đến từ những địa phương nào",
+    "vùng miền nào có nhiều người mua",
+    "phân bổ người mua theo địa lý",
+    "hà nội hay sài gòn nhiều người mua hơn",
+    "người mua tập trung ở khu vực nào",
+    "thống kê người mua theo địa bàn",
+    "địa phương nào đông người mua nhất"
+  ],
+  "BEST_SELLING_PRODUCTS": [
+    "món nào được mua nhiều nhất",
+    "sản phẩm nào hút khách nhất",
+    "mặt hàng nào được ưa chuộng nhất",
+    "linh kiện nào được đặt mua nhiều lần nhất",
+    "top sản phẩm hot nhất cửa hàng",
+    "sản phẩm nào có số lượng bán ra lớn nhất",
+    "hàng nào bán đắt hàng nhất",
+    "món nào khách hay mua nhất",
+    "sản phẩm nào xuất kho nhiều nhất"
+  ],
+  "TOP_SPENDING_CUSTOMERS": [
+    "ai là người mua sộp nhất",
+    "người mua nào đã chi đậm nhất",
+    "khách quen nào chi nhiều tiền",
+    "người nào đã bỏ ra nhiều tiền mua hàng nhất",
+    "danh sách người mua chi mạnh tay nhất",
+    "ai mua hàng với tổng giá trị lớn nhất",
+    "xếp hạng người mua theo tổng tiền đã trả",
+    "người mua thân thiết đóng góp doanh thu nhiều nhất"
+  ],
+  "SALES_BY_MONTH": [
+    "mỗi tháng bán được bao nhiêu tiền",
+    "biểu đồ tiền bán hàng hàng tháng",
+    "tiền thu về qua các tháng ra sao",
+    "xu hướng bán hàng theo thời gian từng tháng",
+    "tháng nào bán ế nhất",
+    "kết quả kinh doanh mỗi tháng",
+    "thu nhập bán hàng từng tháng trong năm",
+    "so sánh tiền bán giữa các tháng"
+  ],
+  "EMPLOYEE_PERFORMANCE": [
+    "ai là người bán giỏi nhất",
+    "xếp hạng nhân sự bán hàng",
+    "nhân sự nào chốt đơn nhiều nhất",
+    "người bán nào mang về nhiều tiền nhất",
+    "đánh giá năng suất của các bạn sale",
+    "bạn sale nào chốt được nhiều nhất",
+    "thành tích của đội ngũ bán hàng",
+    "ai trong cửa hàng bán được nhiều đơn nhất"
+  ],
+  "TOTAL_REVENUE": [
+    "cửa hàng thu về tổng cộng bao nhiêu",
+    "tổng tiền bán hàng từ trước đến nay",
+    "cửa hàng đã kiếm được tất cả bao nhiêu",
+    "tổng số tiền thu từ khách hàng",
+    "doanh số toàn bộ là bao nhiêu",
+    "tiền bán hàng tổng cộng",
+    "tổng thu của shop là bao nhiêu",
+    "cửa hàng lời lãi tổng thu bao nhiêu tiền"
+  ],
+  "SUPPLIER_PURCHASE_TOTAL": [
+    "mình mua hàng từ đối tác nào nhiều nhất",
+    "đã chi bao nhiêu tiền để lấy hàng từ các đối tác",
+    "đối tác cung ứng nào được trả tiền nhiều nhất",
+    "tổng chi phí lấy hàng theo từng đối tác",
+    "bên cung ứng nào cấp hàng nhiều nhất",
+    "tiền vốn bỏ ra lấy hàng của từng bên",
+    "nguồn hàng chính của cửa hàng là ai",
+    "chi phí mua hàng đầu vào theo đối tác"
+  ],
+  "LIST_PRODUCTS": [
+    "cửa hàng đang có những gì",
+    "cho tôi xem hàng hiện có",
+    "shop bán những món nào",
+    "liệt kê toàn bộ mặt hàng",
+    "trong cửa hàng có bán gì",
+    "xem hết các mặt hàng đang bày bán",
+    "mình đang kinh doanh những món gì",
+    "show danh mục hàng hóa"
+  ],
+  "TOP_PRODUCTS_BY_PRICE_DESC": [
+    "món nào giá chát nhất",
+    "sản phẩm cao cấp giá trị nhất",
+    "hàng xịn giá cao ngất",
+    "linh kiện nào tốn nhiều tiền nhất",
+    "món hàng có giá khủng nhất",
+    "sản phẩm nào có giá trị lớn nhất cửa hàng",
+    "món nào tiền nhiều nhất"
+  ],
+  "TOP_PRODUCTS_BY_PRICE_ASC": [
+    "món nào giá mềm nhất",
+    "sản phẩm bình dân nhất",
+    "hàng giá hời nhất",
+    "linh kiện nào tốn ít tiền nhất",
+    "món hàng sinh viên mua nổi giá thấp",
+    "sản phẩm nào ít tiền nhất",
+    "món nào giá bèo nhất"
+  ],
+  "OUT_OF_SCOPE": [
+    "thời tiết hôm nay thế nào",
+    "bạn tên là gì",
+    "xin chào",
+    "kể cho tôi một câu chuyện cười",
+    "hôm nay là thứ mấy",
+    "giải phương trình bậc hai",
+    "bóng đá tối nay ai đá",
+    "cách nấu phở bò",
+    "dịch câu này sang tiếng anh",
+    "tôi buồn quá",
+    "giá vàng hôm nay",
+    "viết một bài thơ",
+    "bạn có khỏe không",
+    "ai là tổng thống mỹ",
+    "cảm ơn bạn",
+    "asdf qwer zxcv",
+    "lorem ipsum dolor sit amet",
+    "123456",
+    "abc xyz",
+    "ok",
+    "tôi muốn đi du lịch đà lạt",
+    "phim gì hay"
+  ]
+}
