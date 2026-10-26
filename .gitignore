@@ -25,6 +25,7 @@ wheels/
 # Environments
 .env
 .venv
+.env.example
 venv/
 ENV/
 
