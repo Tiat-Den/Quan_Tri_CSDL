@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app import intent_classifier  # noqa: E402
-from app.pipeline import interpret  # noqa: E402
+from app.ai_1_text2sql import intent_classifier  # noqa: E402
+from app.ai_1_text2sql.pipeline import interpret  # noqa: E402
 
 
 class TestAI1HybridML(unittest.TestCase):
@@ -71,7 +71,7 @@ PRODUCTS = [
 
 class TestAI2Vectorized(unittest.TestCase):
     def setUp(self):
-        from app.ai_semantic_search import AISemanticSearchEngine
+        from app.ai_2_semantic.ai_semantic_search import AISemanticSearchEngine
         self.engine = AISemanticSearchEngine()
         self.engine.build_index(PRODUCTS)
 
@@ -98,7 +98,7 @@ class TestAI2Vectorized(unittest.TestCase):
 
 class TestAI3Anomaly(unittest.TestCase):
     def setUp(self):
-        import app.ai_security_guard as guard
+        import app.ai_3_security.ai_security_guard as guard
         self.guard = guard
         self._orig = guard.AUDIT_LOG_FILE
         guard.AUDIT_LOG_FILE = Path(tempfile.mkdtemp()) / "audit.jsonl"
@@ -146,8 +146,8 @@ def _fake_plan(filter_txt, rel):
 
 class TestAI4IndexTypes(unittest.TestCase):
     def _analyze(self, flt, rel):
-        from app.ai_index_advisor import AIIndexAdvisor
-        with patch("app.ai_index_advisor.execute_query", side_effect=_fake_plan(flt, rel)), \
+        from app.ai_4_index_advisor.ai_index_advisor import AIIndexAdvisor
+        with patch("app.ai_4_index_advisor.ai_index_advisor.execute_query", side_effect=_fake_plan(flt, rel)), \
              patch.object(AIIndexAdvisor, "_measure_with_hypopg", return_value={"measured": False}):
             return AIIndexAdvisor.analyze_query("SELECT id FROM x WHERE y = 1")
 
@@ -173,8 +173,8 @@ class TestAI4IndexTypes(unittest.TestCase):
         self.assertEqual(r["recommendations"][0]["recommended_columns"], ["khach_hang_id"])
 
     def test_hypopg_measurement_fills_evidence(self):
-        from app.ai_index_advisor import AIIndexAdvisor
-        with patch("app.ai_index_advisor.execute_query", side_effect=_fake_plan("(khach_hang_id = 150)", "don_hang")), \
+        from app.ai_4_index_advisor.ai_index_advisor import AIIndexAdvisor
+        with patch("app.ai_4_index_advisor.ai_index_advisor.execute_query", side_effect=_fake_plan("(khach_hang_id = 150)", "don_hang")), \
              patch.object(AIIndexAdvisor, "_measure_with_hypopg",
                           return_value={"measured": True, "method": "hypopg", "cost_after": 8.3}):
             r = AIIndexAdvisor.analyze_query("SELECT id FROM don_hang WHERE khach_hang_id = 150")
@@ -186,20 +186,20 @@ class TestAI4IndexTypes(unittest.TestCase):
 
 class TestAI5Forecast(unittest.TestCase):
     def test_holt_wins_on_accelerating_series(self):
-        from app.ai_predictive_partitioning import forecast_series
+        from app.ai_5_partitioning.ai_predictive_partitioning import forecast_series
         series = [100 * (1.08 ** i) for i in range(18)]
         fc = forecast_series(series)
         self.assertEqual(fc["best_model"], "HOLT")
         self.assertEqual(len(fc["predictions"]), 3)
 
     def test_ols_wins_on_linear_series(self):
-        from app.ai_predictive_partitioning import forecast_series
+        from app.ai_5_partitioning.ai_predictive_partitioning import forecast_series
         fc = forecast_series([200 + 10 * i for i in range(15)])
         self.assertIn(fc["best_model"], ("OLS", "HOLT"))
         self.assertTrue(fc["beats_baseline"])
 
     def test_what_if_and_migration_plan(self):
-        from app.ai_predictive_partitioning import AIPredictivePartitioningEngine as E
+        from app.ai_5_partitioning.ai_predictive_partitioning import AIPredictivePartitioningEngine as E
         months = [f"2025-{m:02d}" for m in range(1, 13)]
         counts = [300 + 20 * i for i in range(12)]
 
@@ -213,7 +213,7 @@ class TestAI5Forecast(unittest.TestCase):
                 return {"success": True, "data": [{"relkind": "r"}]}
             return {"success": False}
 
-        with patch("app.ai_predictive_partitioning.execute_query", side_effect=fake):
+        with patch("app.ai_5_partitioning.ai_predictive_partitioning.execute_query", side_effect=fake):
             base = E.analyze_and_forecast()
             boom = E.analyze_and_forecast(growth_multiplier=50, threshold_rows=20_000)
         self.assertEqual(base["capacity_assessment"]["recommendation"], "NOT_NEEDED")
@@ -228,7 +228,7 @@ class TestAI5Forecast(unittest.TestCase):
 class TestAI6RealMeasurement(unittest.TestCase):
     def test_change_rate_from_snapshots(self):
         from datetime import datetime, timedelta
-        from app.ai_smart_backup import AISmartBackupEngine as B
+        from app.ai_6_smart_backup.ai_smart_backup import AISmartBackupEngine as B
         tmp = Path(tempfile.mkdtemp()) / "snap.json"
         prev = {"time": (datetime.now() - timedelta(hours=1)).isoformat(),
                 "tables": {"danh_muc": {"ins": 10, "upd": 0, "del": 0}}}
@@ -239,7 +239,7 @@ class TestAI6RealMeasurement(unittest.TestCase):
 
         with patch.object(B, "SNAPSHOT_FILE", str(tmp)), \
              patch.object(B, "_load_stat_snapshot", return_value=prev), \
-             patch("app.ai_smart_backup.execute_query", side_effect=fake):
+             patch("app.ai_6_smart_backup.ai_smart_backup.execute_query", side_effect=fake):
             res = B.analyze_change_rate()
         t = res["tables"][0]
         self.assertTrue(res["measured"])
@@ -248,7 +248,7 @@ class TestAI6RealMeasurement(unittest.TestCase):
         self.assertEqual(t["phan_loai"], "HOT")
 
     def test_risk_uses_real_environment(self):
-        from app.ai_smart_backup import AISmartBackupEngine as B
+        from app.ai_6_smart_backup.ai_smart_backup import AISmartBackupEngine as B
         env = {"last_backup_hours_ago": 2.0, "has_offsite": True, "verified": True,
                "disk_free_pct": 60.0, "archive_mode_on": True, "sources": {}}
         with patch.object(B, "collect_environment", return_value=env), \
@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
 class TestAI3MonitorsAI2(unittest.TestCase):
     def setUp(self):
-        import app.ai_security_guard as guard
+        import app.ai_3_security.ai_security_guard as guard
         self.guard = guard
         self._orig = guard.AUDIT_LOG_FILE
         guard.AUDIT_LOG_FILE = Path(tempfile.mkdtemp()) / "audit.jsonl"
@@ -312,7 +312,7 @@ class TestAI3QuestionGuard(unittest.TestCase):
     """AI 3 đọc câu hỏi tiếng Việt trước khi định tuyến: chặn ý định ghi/xóa dữ liệu."""
 
     def setUp(self):
-        import app.ai_security_guard as guard
+        import app.ai_3_security.ai_security_guard as guard
         self.guard = guard
         self._orig = guard.AUDIT_LOG_FILE
         guard.AUDIT_LOG_FILE = Path(tempfile.mkdtemp()) / "audit.jsonl"
@@ -352,8 +352,8 @@ class TestAI3QuestionGuard(unittest.TestCase):
 class TestAuditSeeder(unittest.TestCase):
     def test_seed_and_remove(self):
         import json as _json
-        import app.ai_security_guard as guard
-        from app.audit_seeder import remove_seeded_history, seed_history
+        import app.ai_3_security.ai_security_guard as guard
+        from app.ai_3_security.audit_seeder import remove_seeded_history, seed_history
         orig = guard.AUDIT_LOG_FILE
         guard.AUDIT_LOG_FILE = Path(tempfile.mkdtemp()) / "audit.jsonl"
         guard.AUDIT_LOG_FILE.write_text('{"timestamp": "x", "user": "u", "status": "HIGH", "allowed": false}\n', encoding="utf-8")

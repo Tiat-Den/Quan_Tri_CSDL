@@ -9,14 +9,14 @@ import unittest
 # Đưa thư mục ai_service vào sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.text_normalizer import normalize_text
-from app.intent_classifier import classify_intent
-from app.entity_extractor import (
+from app.ai_1_text2sql.text_normalizer import normalize_text
+from app.ai_1_text2sql.intent_classifier import classify_intent
+from app.ai_1_text2sql.entity_extractor import (
     extract_price_condition, extract_top_n, extract_category,
     extract_brand, extract_order_status, extract_year, parse_vietnamese_number
 )
-from app.sql_builder import build_sql
-from app.explanation import generate_explanation
+from app.ai_1_text2sql.sql_builder import build_sql
+from app.ai_1_text2sql.explanation import generate_explanation
 
 
 class TestTextToSqlPipeline(unittest.TestCase):

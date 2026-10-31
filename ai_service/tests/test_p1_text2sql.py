@@ -10,9 +10,9 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.text_normalizer import normalize_text, remove_diacritics
-from app.intent_classifier import classify_intent, IntentResult
-from app.entity_extractor import (
+from app.ai_1_text2sql.text_normalizer import normalize_text, remove_diacritics
+from app.ai_1_text2sql.intent_classifier import classify_intent, IntentResult
+from app.ai_1_text2sql.entity_extractor import (
     extract_price_condition,
     extract_top_n,
     extract_category,
@@ -22,7 +22,7 @@ from app.entity_extractor import (
     extract_payment_method,
     parse_vietnamese_number,
 )
-from app.pipeline import interpret
+from app.ai_1_text2sql.pipeline import interpret
 
 
 class TestPhase1TextToSQL(unittest.TestCase):

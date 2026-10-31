@@ -5,8 +5,8 @@ import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.router import route, RouteDecision
-from app.ai_semantic_search import get_engine, flatten_specs, AISemanticSearchEngine
-from app.knowledge_graph import get_knowledge_graph, HardwareNeed
+from app.ai_2_semantic.ai_semantic_search import get_engine, flatten_specs, AISemanticSearchEngine
+from app.ai_2_semantic.knowledge_graph import get_knowledge_graph, HardwareNeed
 
 
 class TestP2SemanticSearch(unittest.TestCase):

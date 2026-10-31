@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Set
 
 from app import config
-from app.entity_extractor import (
+from app.ai_1_text2sql.entity_extractor import (
     extract_brand,
     extract_category,
     extract_channel,
@@ -19,10 +19,10 @@ from app.entity_extractor import (
     extract_top_n,
     extract_year,
 )
-from app.explanation import generate_explanation
-from app.intent_classifier import IntentResult, classify_intent
-from app.sql_builder import build_sql
-from app.text_normalizer import get_normalized_pair, normalize_text
+from app.ai_1_text2sql.explanation import generate_explanation
+from app.ai_1_text2sql.intent_classifier import IntentResult, classify_intent
+from app.ai_1_text2sql.sql_builder import build_sql
+from app.ai_1_text2sql.text_normalizer import get_normalized_pair, normalize_text
 
 logger = logging.getLogger("ai_service.pipeline")
 
@@ -88,7 +88,7 @@ class InterpretResult:
         return asdict(self)
 
 
-def interpret(question: str) -> InterpretResult:
+def interpret(question: str, forced_intent: Optional[str] = None) -> InterpretResult:
     """
     Điểm vào duy nhất để phân tích câu hỏi tự nhiên tiếng Việt sang SQL an toàn:
     1. Kiểm tra độ dài tối đa (MAX_QUESTION_LEN = 300).
@@ -99,6 +99,10 @@ def interpret(question: str) -> InterpretResult:
     6. Dựng câu lệnh SQL tham số hóa (%s) và theo dõi used_entities.
     7. Chính sách thực thể thừa (Unused Entities Policy: từ chối nếu có ràng buộc không thể áp dụng).
     8. Tạo giải thích tự động quy tắc ánh xạ.
+
+    forced_intent: intent người dùng tự chọn khi bấm nút gợi ý "Ý bạn là ...?". Chỉ nhận intent nằm trong
+    INTENT_LABELS (danh sách trắng); khi đó bỏ qua bước phân loại, các bước bóc tách thực thể và kiểm tra
+    thực thể thừa vẫn chạy bình thường.
     """
     raw_question = question.strip() if question else ""
     if not raw_question:
@@ -122,8 +126,11 @@ def interpret(question: str) -> InterpretResult:
     # 1. Chuẩn hóa tiếng Việt
     norm_text, no_accent = get_normalized_pair(raw_question)
 
-    # 2. Phân loại ý định
-    intent_res = classify_intent(norm_text)
+    # 2. Phân loại ý định (hoặc dùng intent người dùng đã chọn từ gợi ý)
+    if forced_intent and forced_intent in INTENT_LABELS:
+        intent_res = IntentResult(forced_intent, 1.0, "user_choice", [])
+    else:
+        intent_res = classify_intent(norm_text)
     if isinstance(intent_res, tuple):
         intent, confidence = intent_res[0], intent_res[1]
         matched_rule = getattr(intent_res, "matched_rule", "")

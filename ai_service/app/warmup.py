@@ -39,7 +39,7 @@ def _run() -> None:
             except Exception as exc:  # một module lỗi không chặn các module khác
                 logger.warning("Warm-up: không nạp được %s: %s", name, exc)
         try:
-            from app.ai_semantic_search import get_engine
+            from app.ai_2_semantic.ai_semantic_search import get_engine
             get_engine()  # dựng sẵn chỉ mục sản phẩm cho AI 2
         except Exception as exc:
             logger.warning("Warm-up: chưa dựng được chỉ mục AI 2: %s", exc)

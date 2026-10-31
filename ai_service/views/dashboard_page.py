@@ -39,12 +39,12 @@ from app.db import (
     get_monthly_revenue_data,
     get_schema_info,
 )
-from app.pipeline import interpret, InterpretResult
+from app.ai_1_text2sql.pipeline import interpret, InterpretResult
 
 # Import các Module AI Mở Rộng
 from app.router import route, RouteDecision
-from app.ai_semantic_search import semantic_search_engine, get_engine
-from app.ai_security_guard import (
+from app.ai_2_semantic.ai_semantic_search import semantic_search_engine, get_engine
+from app.ai_3_security.ai_security_guard import (
     AISecurityGuard,
     evaluate_question_text,
     evaluate_semantic_request,
@@ -93,11 +93,12 @@ elif hasattr(st, "experimental_fragment"):
     _lock_banner = st.experimental_fragment(run_every=1)(_lock_banner_body)
 else:
     _lock_banner = _lock_banner_body
-from app.ai_index_advisor import AIIndexAdvisor
-from app.ai_predictive_partitioning import AIPredictivePartitioningEngine
+from app.ai_4_index_advisor.ai_index_advisor import AIIndexAdvisor
+from app.ai_5_partitioning.ai_predictive_partitioning import AIPredictivePartitioningEngine
 from app.auth import authenticate, is_admin, is_manager, get_current_role
-from app.ai_smart_backup import smart_backup_engine, AISmartBackupEngine
+from app.ai_6_smart_backup.ai_smart_backup import smart_backup_engine, AISmartBackupEngine
 from app import security_lockout
+from app import learning_loop
 from app.ui_theme import BASE_CSS, CHART_BLUE, badge, kpi_card, meter, section_header, sub_header
 
 # ==============================================================================
@@ -175,6 +176,198 @@ def _c_backup_history(limit: int):
     return smart_backup_engine.get_backup_history(limit=limit)
 
 
+# Học từ câu chưa hiểu: tab Lịch sử được vẽ lại ở MỌI lượt chạy -> lưu đệm để không mở kết nối liên tục
+@st.cache_data(ttl=30, show_spinner=False)
+def _c_learn_counts():
+    return learning_loop.count_by_status()
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def _c_learn_rows(status: str, limit: int):
+    return learning_loop.list_questions(status, limit)
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def _c_learn_history(limit: int):
+    return learning_loop.training_history(limit)
+
+
+def _clear_learn_cache():
+    for fn in (_c_learn_counts, _c_learn_rows, _c_learn_history):
+        fn.clear()
+
+
+def _fmt_time(v) -> str:
+    try:
+        return v.astimezone().strftime("%H:%M %d/%m/%Y")
+    except Exception:
+        return str(v or "")
+
+
+def render_learning_admin():
+    """Màn hình duyệt câu chưa hiểu và huấn luyện lại có kiểm soát (chỉ Admin)."""
+    stats = _c_learn_counts()
+    if not stats.get("success"):
+        _c_learn_counts.clear()   # không giữ lỗi trong bộ đệm: chạy xong script SQL là thấy ngay
+        st.warning(
+            "Chưa đọc được nhật ký câu chưa hiểu. Hãy chạy `database/hoc_tu_cau_chua_hieu.sql` trên LinhKien_DB "
+            f"bằng tài khoản postgres. Chi tiết: {stats.get('error')}"
+        )
+        return
+    cnt = stats["counts"]
+    k = st.columns(5)
+    k[0].markdown(kpi_card("Chờ duyệt", f"{cnt['cho_duyet']:,}"), unsafe_allow_html=True)
+    k[1].markdown(kpi_card("Đã gán nhãn, chưa học", f"{stats['labeled_untrained']:,}",
+                           "Bấm Huấn luyện lại" if stats["labeled_untrained"] else "", "warn"), unsafe_allow_html=True)
+    k[2].markdown(kpi_card("Đã học", f"{stats['trained']:,}"), unsafe_allow_html=True)
+    k[3].markdown(kpi_card("Cần mẫu SQL mới", f"{cnt['can_mau_sql_moi']:,}"), unsafe_allow_html=True)
+    k[4].markdown(kpi_card("Bỏ qua", f"{cnt['bo_qua']:,}"), unsafe_allow_html=True)
+
+    # ---------------- Huấn luyện lại ----------------
+    st.markdown(sub_header("Huấn luyện lại"), unsafe_allow_html=True)
+    b1, b2 = st.columns([1, 3])
+    with b1:
+        # Bật khi có câu mới gán nhãn, hoặc mô hình đang chạy còn mẫu đã bị Admin mở lại / bỏ qua
+        _dirty = stats["labeled_untrained"] > 0 or learning_loop.live_learned_count() != stats["trained"]
+        do_retrain = st.button("Huấn luyện lại", type="primary", use_container_width=True,
+                               disabled=not _dirty, key="learn_retrain")
+    with b2:
+        st.caption("Mô hình ứng viên = dữ liệu gốc + mọi câu đã gán nhãn. Chỉ áp dụng khi số câu đúng trên bộ 50 câu "
+                   "chuẩn và trên dữ liệu gốc KHÔNG giảm; ngược lại giữ mô hình cũ và chỉ ra câu bị hỏng.")
+    if do_retrain:
+        with st.spinner("Đang huấn luyện mô hình ứng viên và chấm trên bộ câu chuẩn..."):
+            st.session_state["learn_report"] = learning_loop.retrain(_current_username())
+        _clear_learn_cache()
+    rep = st.session_state.get("learn_report")
+    if rep:
+        if not rep.get("success"):
+            st.error(rep.get("error") or "Huấn luyện lại thất bại.")
+        else:
+            _summary = (f"Bộ câu chuẩn: {rep['correct_old']} → {rep['correct_new']}/{rep['total']} câu đúng · "
+                        f"Dữ liệu gốc: {rep['base_old']} → {rep['base_new']}/{rep['base_total']} · "
+                        f"Hiểu {rep['learned_ok']}/{rep['n_intent_samples']} câu AI 1 vừa dạy, "
+                        f"{rep['phrase_ok']}/{rep['n_need_phrases']} cụm từ AI 2.")
+            if rep["accepted"]:
+                st.success("Đã áp dụng mô hình mới. " + _summary)
+                if rep.get("fixed"):
+                    st.caption("Câu chuẩn được sửa đúng thêm: " + "; ".join(rep["fixed"]))
+            else:
+                st.error("Giữ nguyên mô hình cũ. " + rep.get("note", "") + " · " + _summary)
+                st.caption("Gợi ý: xem lại nhãn của các câu vừa gán (có thể gán nhầm intent), hoặc «Mở lại» câu gây xung đột.")
+
+    # ---------------- Danh sách theo trạng thái ----------------
+    st.markdown(sub_header("Danh sách câu hỏi"), unsafe_allow_html=True)
+    _status_keys = list(learning_loop.STATUSES.keys())
+    status = st.radio("Nhóm", _status_keys, format_func=lambda x: learning_loop.STATUSES[x],
+                      horizontal=True, key="learn_status", label_visibility="collapsed")
+    data = _c_learn_rows(status, 20 if status == "cho_duyet" else 100)
+    if not data.get("success"):
+        st.error(data.get("error"))
+        return
+    rows = data["rows"]
+    if not rows:
+        st.info("Không có câu hỏi nào trong nhóm này.")
+    intents = learning_loop.learnable_intents()
+    intent_keys = list(intents.keys())
+    needs = learning_loop.knowledge_needs()
+    actions = {"intent": "Gán intent (AI 1)", "nhu_cau": "Gán nhu cầu (AI 2)",
+               "can_mau_sql_moi": "Cần mẫu SQL mới", "bo_qua": "Bỏ qua"}
+
+    if status == "cho_duyet":
+        for r in rows:
+            with st.container(border=True):
+                st.markdown(f"**{r['cau_hoi']}**")
+                _sugg = ", ".join(f"{intents.get(x['intent'], x['intent'])} ({x['p'] * 100:.0f}%)"
+                                  for x in (r.get("goi_y_ml") or []) if isinstance(x, dict))
+                st.caption(
+                    f"Gặp {r['so_lan_gap']} lần · {learning_loop.REASONS.get(r['ly_do'], r['ly_do'])} · "
+                    f"lần cuối {_fmt_time(r['lan_cuoi'])} ({r.get('nguoi_hoi_cuoi') or '—'})"
+                    + (f" · Mô hình đoán: {_sugg}" if _sugg else "")
+                    + (f" · **Người dùng đã chọn: {intents.get(r['intent_nguoi_dung_chon'], r['intent_nguoi_dung_chon'])}**"
+                       if r.get("intent_nguoi_dung_chon") else "")
+                )
+                # Mặc định để TRỐNG: Admin phải tự chọn. Ô đi kèm chỉ hiện theo Quyết định đã chọn
+                # (không dùng st.form vì trong form đổi lựa chọn không vẽ lại trang để ẩn/hiện ô).
+                f1, f2, f3 = st.columns([1.2, 1.6, 1.6])
+                act = f1.selectbox("Quyết định", list(actions.keys()), format_func=lambda x: actions[x],
+                                   index=None, placeholder="Chọn quyết định", key=f"learn_act_{r['id']}")
+                it, nd, ph = None, None, ""
+                if act == "intent":
+                    it = f2.selectbox("Intent", intent_keys, format_func=lambda x: intents[x],
+                                      index=None, placeholder="Chọn intent", key=f"learn_int_{r['id']}")
+                elif act == "nhu_cau":
+                    nd = f2.selectbox("Nhu cầu", needs, index=None, placeholder="Chọn nhu cầu",
+                                      key=f"learn_need_{r['id']}")
+                    ph = f3.text_input("Cụm từ học", value="", placeholder="vd: edit clip",
+                                       help="Cụm từ ngắn, đặc trưng của nhu cầu, ví dụ «edit clip». Khi câu hỏi chứa cụm này, "
+                                            "AI 2 sẽ hiểu là nhu cầu đã chọn.",
+                                       key=f"learn_phrase_{r['id']}")
+                if st.button("Lưu quyết định", key=f"learn_save_{r['id']}", disabled=act is None):
+                    _missing = None
+                    if act == "intent" and it is None:
+                        _missing = "Hãy chọn Intent cần gán cho AI 1."
+                    elif act == "nhu_cau" and (nd is None or not ph.strip()):
+                        _missing = "Hãy chọn Nhu cầu và nhập Cụm từ học cho AI 2."
+                    if _missing:
+                        st.warning(_missing)
+                    else:
+                        out = learning_loop.review(r["id"], act, _current_username(),
+                                                   label=it if act == "intent" else nd if act == "nhu_cau" else None,
+                                                   phrase=ph if act == "nhu_cau" else None)
+                        if out.get("success"):
+                            _clear_learn_cache()
+                            st.session_state.pop("learn_report", None)
+                            st.rerun()
+                        else:
+                            st.error(out.get("error"))
+    elif rows:
+        df_l = pd.DataFrame([{
+            "ID": r["id"],
+            "Câu hỏi": r["cau_hoi"],
+            "Nhãn": (intents.get(r["nhan"], r["nhan"]) if r.get("loai_nhan") == "intent"
+                     else f"Nhu cầu «{r['nhan']}» · cụm từ «{r.get('cum_tu_hoc')}»" if r.get("loai_nhan") == "nhu_cau"
+                     else ""),
+            "Đã học": "Có" if r.get("da_huan_luyen") else "Chưa",
+            "Số lần gặp": r["so_lan_gap"],
+            "Người duyệt": r.get("nguoi_duyet") or "",
+            "Lúc duyệt": _fmt_time(r.get("thoi_diem_duyet")),
+        } for r in rows])
+        if status != "da_gan_nhan":
+            df_l = df_l.drop(columns=["Nhãn", "Đã học"])
+        st.dataframe(df_l, use_container_width=True, hide_index=True)
+        o1, o2 = st.columns([3, 1])
+        with o1:
+            _rid = st.selectbox("Đưa một câu về «Chờ duyệt» (hoàn tác quyết định)", [r["id"] for r in rows],
+                                format_func=lambda i: next(f"#{x['id']} · {x['cau_hoi']}" for x in rows if x["id"] == i),
+                                key=f"learn_reopen_{status}")
+        with o2:
+            st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
+            if st.button("Mở lại", use_container_width=True, key=f"learn_reopen_btn_{status}"):
+                out = learning_loop.review(_rid, "mo_lai", _current_username())
+                if out.get("success"):
+                    _clear_learn_cache()
+                    st.session_state.pop("learn_report", None)
+                    st.rerun()
+                else:
+                    st.error(out.get("error"))
+        if status == "da_gan_nhan":
+            st.caption("Câu mở lại hoặc đổi nhãn chỉ được gỡ khỏi mô hình sau lần «Huấn luyện lại» kế tiếp "
+                       "(kể cả khi không còn câu nào được gán nhãn: mô hình trở về dữ liệu gốc).")
+
+    hist = _c_learn_history(10)
+    if hist.get("success") and hist["rows"]:
+        with st.expander("Lịch sử huấn luyện lại"):
+            st.dataframe(pd.DataFrame([{
+                "Thời điểm": _fmt_time(h["thoi_diem"]),
+                "Người chạy": h["nguoi_thuc_hien"],
+                "Câu AI 1": h["so_mau_hoc_intent"],
+                "Cụm từ AI 2": h["so_cum_tu_nhu_cau"],
+                "Câu chuẩn đúng (cũ → mới)": f"{float(h['do_chinh_xac_cu'] or 0):g}% → {float(h['do_chinh_xac_moi'] or 0):g}%",
+                "Kết quả": "Áp dụng" if h["ket_qua"] == "ap_dung" else "Từ chối",
+                "Ghi chú": h.get("ghi_chu") or "",
+            } for h in hist["rows"]]), use_container_width=True, hide_index=True)
+
+
 # ==============================================================================
 # CẤU HÌNH TRANG STREAMLIT
 # ==============================================================================
@@ -221,6 +414,30 @@ def clear_query_input():
     st.session_state.input_box = ""
     st.session_state.auto_run = False
 
+
+def choose_suggested_intent(question_text: str, intent: str):
+    """
+    Người dùng bấm gợi ý "Ý bạn là ...": chạy lại câu với intent đã chọn. Lựa chọn CHỈ được ghi làm phiếu
+    gợi ý cho Admin khi câu trả lời chạy thành công (đã qua AI 3) -> xem route_and_execute_question.
+    """
+    st.session_state.query_input = question_text
+    st.session_state.input_box = question_text
+    st.session_state.forced_intent = (question_text, intent)
+    st.session_state.auto_run = True
+
+
+def render_intent_suggestions(question_text: str, intents: List[str], key_prefix: str):
+    """Nút gợi ý intent (tối đa 3) cho câu AI 1 chưa chắc chắn / chưa hiểu."""
+    labels = learning_loop.learnable_intents()
+    picks = [str(i) for i in dict.fromkeys(intents or []) if str(i) in labels][:3]
+    if not picks:
+        return
+    st.caption("Ý bạn là (bấm để chạy lại; lựa chọn của bạn giúp hệ thống học thêm):")
+    cols = st.columns(len(picks))
+    for col, it in zip(cols, picks):
+        col.button(labels[it], key=f"{key_prefix}_{it}", use_container_width=True,
+                   on_click=choose_suggested_intent, args=(question_text, it))
+
 SAMPLE_QUESTIONS_BY_LEVEL = {
     "Cấp độ 1: Cơ bản (Đơn bảng, Lọc, Đếm, Tồn kho)": [
         "Danh sách sản phẩm đang bán",
@@ -253,7 +470,7 @@ SAMPLE_QUESTIONS_BY_LEVEL = {
 # ==============================================================================
 # HÀM XỬ LÝ TEXT-TO-SQL NỘI BỘ (AI 1)
 # ==============================================================================
-def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
+def process_question(question_text: str, role: str = 'admin', forced_intent: str = None) -> Dict[str, Any]:
     """Phân tích câu hỏi tự nhiên tiếng Việt sang SQL và chạy trên PostgreSQL thông qua pipeline dùng chung."""
     raw_question = question_text.strip() if question_text else ""
     if not raw_question:
@@ -271,8 +488,17 @@ def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
             "sql": None,
         }
 
-    res = interpret(raw_question)
+    res = interpret(raw_question, forced_intent=forced_intent)
     if not res.success or res.intent == "UNKNOWN":
+        # Lý do để ghi vào nhật ký "học từ câu chưa hiểu" (None = không cần học, vd thiếu đơn vị giá)
+        if res.intent == "UNKNOWN":
+            learn_reason = "ngoai_pham_vi"
+        elif res.entities.get("needs_clarification"):
+            learn_reason = None
+        elif res.confidence < 0.7:
+            learn_reason = "hoi_lai"
+        else:
+            learn_reason = "dieu_kien_chua_ho_tro"
         return {
             "success": False,
             "intent": "UNKNOWN",
@@ -286,6 +512,8 @@ def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
             "needs_clarification": res.needs_clarification,
             "clarification": res.clarification,
             "warnings": res.warnings,
+            "alternatives": [str(a) for a in (res.alternatives or [])],
+            "learn_reason": None if forced_intent else learn_reason,
         }
 
     # Đánh giá an ninh trước khi thực thi (AI 3 Zero-Trust Guard - A3-4)
@@ -358,7 +586,7 @@ def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
     }
 
 
-def route_and_execute_question(question_text: str) -> Dict[str, Any]:
+def route_and_execute_question(question_text: str, forced_intent: str = None) -> Dict[str, Any]:
     """
     Tự động phân loại câu hỏi và định tuyến thông minh qua Router:
     - Nếu khớp Intent truy vấn CSDL -> Kích hoạt AI 1 (Text-to-SQL Engine).
@@ -396,13 +624,23 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
 
     decision = pre_decision
     engine_choice = decision.engine.lower()
+    # Người dùng đã chọn intent từ gợi ý "Ý bạn là ..." -> chạy thẳng AI 1 với intent đó
+    # (vẫn đi qua chốt chặn đầu vào ở trên và AI 3 chấm câu SQL trong process_question)
+    if forced_intent and forced_intent in learning_loop.learnable_intents():
+        engine_choice = "ai1"
 
     if engine_choice == "ai1":
         # => ĐỊNH TUYẾN SANG AI 1: TEXT-TO-SQL
-        res = process_question(raw, role=get_current_role(st.session_state))
+        res = process_question(raw, role=get_current_role(st.session_state), forced_intent=forced_intent)
         res["engine"] = "AI 1"
         res["engine_name"] = "AI 1: Text-to-SQL Engine (Chuyển đổi truy vấn CSDL PostgreSQL)"
         res["route_decision"] = decision
+        if forced_intent and res.get("success"):
+            # Lựa chọn của người dùng cho ra kết quả thật -> 1 phiếu gợi ý cho Admin khi duyệt
+            learning_loop.record_choice(raw, forced_intent)
+        if res.get("learn_reason"):
+            learning_loop.log_unknown(raw, res["learn_reason"], learning_loop.ml_suggestions(raw),
+                                      user=_current_username())
         return res
     elif engine_choice == "ai2":
         # => ĐỊNH TUYẾN SANG AI 2: SEMANTIC SEARCH & KNOWLEDGE GRAPH
@@ -457,20 +695,26 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
                 "route_decision": decision,
             }
         else:
+            learning_loop.log_unknown(raw, "ai2_khong_ket_qua", user=_current_username())
             return {
                 "success": False,
                 "engine": "UNKNOWN",
                 "error_type": "UNKNOWN_ALL",
                 "error": "Câu hỏi nằm ngoài phạm vi 20 tập luật SQL của AI 1 và Bản đồ tri thức phần cứng của AI 2.",
                 "route_decision": decision,
+                "learn_reason": "ai2_khong_ket_qua",
             }
     else:
+        _sugg = learning_loop.ml_suggestions(raw)
+        learning_loop.log_unknown(raw, "ngoai_pham_vi", _sugg, user=_current_username())
         return {
             "success": False,
             "engine": "UNKNOWN",
             "error_type": "UNKNOWN_ALL",
             "error": "Câu hỏi nằm ngoài phạm vi 20 tập luật SQL của AI 1 và Bản đồ tri thức phần cứng của AI 2.",
             "route_decision": decision,
+            "learn_reason": "ngoai_pham_vi",
+            "suggestions": [x["intent"] for x in _sugg if x.get("p", 0) >= 0.10],
         }
 
 
@@ -682,6 +926,9 @@ with tab_ai12:
 
     # Kích hoạt thực thi nếu người dùng bấm nút hoặc chọn từ câu hỏi mẫu
     should_execute = btn_run or st.session_state.auto_run
+    # Intent chọn từ gợi ý chỉ dùng cho ĐÚNG lượt chạy được kích hoạt bởi nút gợi ý; lấy ra ngay để không
+    # sót lại (vd đang bị khóa) rồi bị áp dụng âm thầm cho lần bấm Thực thi sau.
+    _forced = st.session_state.pop("forced_intent", None) if should_execute else None
     if should_execute:
         # Nếu là auto_run (do bấm nút mẫu), ưu tiên dùng query_input được gán từ nút bấm
         if st.session_state.auto_run and st.session_state.query_input:
@@ -695,8 +942,10 @@ with tab_ai12:
         elif not query_to_run:
             st.warning("Vui lòng nhập câu hỏi trước khi thực thi.")
         else:
+            # Intent người dùng chọn từ gợi ý chỉ áp dụng đúng cho câu hỏi vừa bấm
+            _forced_intent = _forced[1] if _forced and _forced[0] == query_to_run else None
             with st.spinner("Đang phân tích câu hỏi và định tuyến..."):
-                res = route_and_execute_question(query_to_run)
+                res = route_and_execute_question(query_to_run, forced_intent=_forced_intent)
 
             # ======================= TRƯỜNG HỢP 1: KÍCH HOẠT AI 1 =======================
             if res.get("engine") == "AI 1":
@@ -704,6 +953,13 @@ with tab_ai12:
                 if not res.get("success") and res.get("needs_clarification") and res.get("clarification"):
                     # Hệ thống chưa chắc chắn -> hỏi lại kèm gợi ý thay vì báo lỗi
                     st.warning(res["clarification"])
+                    if res.get("learn_reason") in ("ngoai_pham_vi", "hoi_lai"):
+                        _labels = learning_loop.learnable_intents()
+                        _alts = [a for a in (res.get("alternatives") or []) if a in _labels] or [
+                            x["intent"] for x in learning_loop.ml_suggestions(query_to_run) if x.get("p", 0) >= 0.10]
+                        render_intent_suggestions(query_to_run, _alts, "sugg_ai1")
+                    if res.get("learn_reason"):
+                        st.caption("Câu hỏi đã được ghi lại để Admin duyệt và dạy thêm cho hệ thống (tab Lịch sử truy vấn).")
                 elif not res.get("success"):
                     st.error(f"Lỗi thực thi CSDL: {res.get('db_error') or res.get('error')}")
                     if res.get("sql"):
@@ -711,7 +967,8 @@ with tab_ai12:
                 else:
                     m1, m2, m3, m4 = st.columns(4)
                     m1.metric("Ý định nhận diện", res["intent"])
-                    _mech = "Học máy" if str(res.get("matched_rule", "")).startswith("ml_") else "Luật regex"
+                    _rule = str(res.get("matched_rule", ""))
+                    _mech = "Học máy" if _rule.startswith("ml_") else ("Bạn chọn" if _rule == "user_choice" else "Luật regex")
                     m2.metric("Độ tin cậy", f"{int(res['confidence'] * 100)}% ({_mech})")
                     m3.metric("Thời gian DB", f"{res['execution_time_ms']} ms")
                     m4.metric("Số dòng kết quả", f"{res['row_count']} dòng")
@@ -856,6 +1113,9 @@ with tab_ai12:
                     2. **Câu hỏi tư vấn phần cứng**:  PC chơi game nặng, Cấu hình đồ họa render video, Máy tính văn phòng học tập, Mở nhiều tab đa nhiệm...
                     """
                 )
+                if res.get("learn_reason"):
+                    render_intent_suggestions(query_to_run, res.get("suggestions") or [], "sugg_unk")
+                    st.caption("Câu hỏi đã được ghi lại để Admin duyệt và dạy thêm cho hệ thống (tab Lịch sử truy vấn).")
                 st.session_state.history.insert(
                     0,
                     {
@@ -1039,8 +1299,8 @@ with tab_ai3:
 
     # ---------------- DỮ LIỆU HUẤN LUYỆN MÔ HÌNH HỌC MÁY (đọc từ nhật ký -> còn nguyên sau F5) ----------------
     st.markdown(sub_header("Dữ liệu huấn luyện mô hình phát hiện bất thường"), unsafe_allow_html=True)
-    from app.audit_seeder import training_data_stats, seed_history, remove_seeded_history
-    from app.ai_anomaly_detector import BASELINE_SAMPLES, get_anomaly_detector
+    from app.ai_3_security.audit_seeder import training_data_stats, seed_history, remove_seeded_history
+    from app.ai_3_security.ai_anomaly_detector import BASELINE_SAMPLES, get_anomaly_detector
 
     # Thông báo của lần nạp/xóa trước (giữ qua lần chạy lại ngay sau khi bấm nút)
     _seed_msg = st.session_state.pop("seed_msg", None)
@@ -1948,3 +2208,15 @@ with tab_history:
         )
     else:
         st.info("Chưa có lượt truy vấn nào trong phiên này. Hãy chạy một câu hỏi ở tab Truy vấn hoặc chọn câu hỏi mẫu ở thanh bên.")
+
+    # ---------------- HỌC TỪ CÂU HỎI CHƯA HIỂU (AI 1 / AI 2) ----------------
+    st.markdown("---")
+    st.markdown(section_header(
+        "Học từ câu hỏi chưa hiểu",
+        "Câu AI 1 / AI 2 chưa trả lời được được tự động ghi lại."
+        " Admin duyệt, gán nhãn rồi huấn luyện lại; hệ thống không tự học khi chưa có người duyệt.",
+        "AI 1 · AI 2"), unsafe_allow_html=True)
+    if is_admin(st.session_state):
+        render_learning_admin()
+    else:
+        st.info("Chỉ Admin được duyệt câu hỏi và huấn luyện lại mô hình.")

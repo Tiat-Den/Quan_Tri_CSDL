@@ -5,7 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.ai_smart_backup import smart_backup_engine, BackupSizePredictor
+from app.ai_6_smart_backup.ai_smart_backup import smart_backup_engine, BackupSizePredictor
 
 
 class TestP6SmartBackup(unittest.TestCase):

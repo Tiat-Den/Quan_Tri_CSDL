@@ -6,7 +6,7 @@ chống bỏ sót ràng buộc thầm lặng (A1-4) và bảo toàn tính tươn
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from app.config import DEFAULT_LIMIT, MAX_LIMIT
-from app.query_templates import TEMPLATES
+from app.ai_1_text2sql.query_templates import TEMPLATES
 
 
 class SQLBuildResult:

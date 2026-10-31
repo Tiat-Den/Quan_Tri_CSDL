@@ -15,7 +15,7 @@ from app.db import (
     execute_query,
     DatabaseConnectionError,
 )
-from app.pipeline import interpret
+from app.ai_1_text2sql.pipeline import interpret
 
 
 class TestPhase0Foundations(unittest.TestCase):

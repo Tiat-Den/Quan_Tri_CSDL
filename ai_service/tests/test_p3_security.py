@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.ai_security_guard import AISecurityGuard, read_audit_log, write_audit_log
+from app.ai_3_security.ai_security_guard import AISecurityGuard, read_audit_log, write_audit_log
 from app.session_context import SessionContext, RateTracker, mask_sensitive_columns
 
 

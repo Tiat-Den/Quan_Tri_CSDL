@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.ai_predictive_partitioning import AIPredictivePartitioningEngine, LinearRegressionPredictor
+from app.ai_5_partitioning.ai_predictive_partitioning import AIPredictivePartitioningEngine, LinearRegressionPredictor
 
 
 class TestP5Partitioning(unittest.TestCase):

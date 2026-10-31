@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
 from app.schemas import InterpretRequest, InterpretResponse, IntentInfo
-from app.pipeline import interpret, InterpretResult
+from app.ai_1_text2sql.pipeline import interpret, InterpretResult
 
 app = FastAPI(
     title="LinhKien Text-to-SQL Rule Engine",

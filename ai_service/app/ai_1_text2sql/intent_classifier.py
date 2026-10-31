@@ -8,8 +8,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, List, Optional, Tuple
 
-from app.text_normalizer import remove_diacritics
-from app.entity_extractor import (
+from app.ai_1_text2sql.text_normalizer import remove_diacritics
+from app.ai_1_text2sql.entity_extractor import (
     extract_brand,
     extract_channel,
     extract_category,
@@ -378,7 +378,7 @@ def _ml_fallback(text: str) -> IntentResult:
     if not ML_FALLBACK_ENABLED:
         return IntentResult("UNKNOWN", 0.0, "rule_unknown")
     try:
-        from app.ml_intent_classifier import (
+        from app.ai_1_text2sql.ml_intent_classifier import (
             ML_ACCEPT_THRESHOLD,
             ML_SUGGEST_THRESHOLD,
             get_ml_classifier,

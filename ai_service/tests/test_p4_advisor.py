@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.ai_index_advisor import AIIndexAdvisor
+from app.ai_4_index_advisor.ai_index_advisor import AIIndexAdvisor
 
 
 class TestP4IndexAdvisor(unittest.TestCase):

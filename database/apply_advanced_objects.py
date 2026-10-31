@@ -29,6 +29,7 @@ HARDENING_SQL_FILE = os.path.join(CURRENT_DIR, "security_hardening.sql")
 UPGRADE_SQL_FILES = [
     os.path.join(CURRENT_DIR, "ai_notify_alerts.sql"),
     os.path.join(CURRENT_DIR, "nang_cap_bao_mat_toi_uu.sql"),
+    os.path.join(CURRENT_DIR, "hoc_tu_cau_chua_hieu.sql"),   # nhật ký câu chưa hiểu cho AI 1 / AI 2
 ]
 
 

@@ -106,7 +106,7 @@ class QueryAnomalyDetector:
     # ------------------------------------------------------------------
     @staticmethod
     def _load_log_records() -> List[Dict[str, Any]]:
-        from app.ai_security_guard import AUDIT_LOG_FILE
+        from app.ai_3_security.ai_security_guard import AUDIT_LOG_FILE
         records = []
         if not AUDIT_LOG_FILE.exists():
             return records

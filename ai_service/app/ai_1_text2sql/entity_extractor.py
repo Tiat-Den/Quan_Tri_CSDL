@@ -15,7 +15,7 @@ from app.schema_catalog import (
     ORDER_STATUSES,
     PAYMENT_METHODS,
 )
-from app.text_normalizer import remove_diacritics
+from app.ai_1_text2sql.text_normalizer import remove_diacritics
 
 MAX_PRICE = Decimal("1000000000000")  # 10^12 VNĐ
 

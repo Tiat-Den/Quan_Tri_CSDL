@@ -22,7 +22,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-ROOT = Path(__file__).resolve().parent.parent
+_r1 = Path(__file__).resolve().parent.parent
+_r2 = Path(__file__).resolve().parent.parent.parent
+ROOT = _r1 if (_r1 / "logs").exists() else _r2
 SEED_SOURCE = "seed_lich_su"
 
 # Thói quen làm việc của từng tài khoản: (giờ bắt đầu, giờ kết thúc, tỷ lệ dùng AI 2)
@@ -91,8 +93,8 @@ def seed_history(n_records: int = 600, days: int = 30, seed: int = 2026, replace
     """
     import app.ai_security_guard as guard
 
-    from app.ai_anomaly_detector import build_features
-    from app.pipeline import interpret
+    from app.ai_3_security.ai_anomaly_detector import build_features
+    from app.ai_1_text2sql.pipeline import interpret
 
     rng = random.Random(seed)
     pool = _question_pool()
@@ -191,7 +193,7 @@ def seed_history(n_records: int = 600, days: int = 30, seed: int = 2026, replace
 
     # Buộc mô hình huấn luyện lại ở lần chấm điểm tiếp theo
     try:
-        from app.ai_anomaly_detector import get_anomaly_detector
+        from app.ai_3_security.ai_anomaly_detector import get_anomaly_detector
         get_anomaly_detector()._model = None
     except Exception:
         pass
@@ -233,7 +235,7 @@ def remove_seeded_history() -> int:
             f.writelines(kept)
         os.replace(tmp_path, log)
     try:
-        from app.ai_anomaly_detector import get_anomaly_detector
+        from app.ai_3_security.ai_anomaly_detector import get_anomaly_detector
         get_anomaly_detector()._model = None
     except Exception:
         pass
@@ -246,7 +248,7 @@ def training_data_stats() -> Dict[str, Any]:
     số bản ghi lịch sử nạp và dữ liệu thật, hồ sơ từng người dùng, phân bố theo ngày.
     """
     import app.ai_security_guard as guard
-    from app.ai_anomaly_detector import FEATURE_NAMES, MIN_USER_HISTORY
+    from app.ai_3_security.ai_anomaly_detector import FEATURE_NAMES, MIN_USER_HISTORY
 
     log = guard.AUDIT_LOG_FILE
     recs = []

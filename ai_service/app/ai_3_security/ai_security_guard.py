@@ -25,7 +25,9 @@ from app.session_context import SessionContext, mask_sensitive_columns
 
 logger = logging.getLogger("ai_service.security_guard")
 
-LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
+_log_cand1 = Path(__file__).resolve().parent.parent / "logs"
+_log_cand2 = Path(__file__).resolve().parent.parent.parent / "logs"
+LOGS_DIR = _log_cand1 if _log_cand1.exists() else _log_cand2
 AUDIT_LOG_FILE = LOGS_DIR / "security_audit.jsonl"
 
 # Các loại Node câu lệnh phá hoại trong SQL AST
@@ -342,7 +344,7 @@ class AISecurityGuard:
         anomaly_info: Optional[Dict[str, Any]] = None
         if use_anomaly:
             try:
-                from app.ai_anomaly_detector import build_features, get_anomaly_detector
+                from app.ai_3_security.ai_anomaly_detector import build_features, get_anomaly_detector
                 features = build_features(
                     hour=hour,
                     rows=eff_rows,
@@ -528,7 +530,7 @@ def evaluate_semantic_request(
     Không dùng tần suất hỏi (QPS) cho AI 2.
     Hành động: < 40 cho phép; 40-69 giới hạn số kết quả; >= 70 chặn.
     """
-    from app.text_normalizer import remove_diacritics
+    from app.ai_1_text2sql.text_normalizer import remove_diacritics
 
     if hour is None:
         hour = datetime.now().hour
@@ -567,7 +569,7 @@ def evaluate_semantic_request(
     features = None
     if use_anomaly:
         try:
-            from app.ai_anomaly_detector import build_features, get_anomaly_detector
+            from app.ai_3_security.ai_anomaly_detector import build_features, get_anomaly_detector
             # Ánh xạ yêu cầu AI 2 sang không gian đặc trưng chung; QPS cố định 0 (không xét tần suất)
             features = build_features(
                 hour=hour, rows=max(seen_count, 1), n_tables=1, n_columns=0,
@@ -714,7 +716,7 @@ def evaluate_question_text(
     - Hỏi dữ liệu bí mật như mật khẩu, giá vốn (+40, WARNING -> ghi nhận và để AI 1 che cột).
     Chỉ ghi nhật ký khi có rủi ro (câu hỏi bình thường đã được AI 1 / AI 2 ghi nhật ký riêng).
     """
-    from app.text_normalizer import remove_diacritics
+    from app.ai_1_text2sql.text_normalizer import remove_diacritics
 
     import unicodedata
     q_lower = unicodedata.normalize("NFC", question or "").lower()

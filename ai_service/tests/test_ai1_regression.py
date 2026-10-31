@@ -15,7 +15,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.pipeline import interpret
+from app.ai_1_text2sql.pipeline import interpret
 
 
 class TestAI1Regression(unittest.TestCase):

@@ -586,6 +586,13 @@ BEGIN
     IF to_regclass('"LinhKien".tai_khoan_nhan_vien') IS NOT NULL THEN
         EXECUTE 'REVOKE ALL ON "LinhKien".tai_khoan_nhan_vien FROM PUBLIC, text2sql_readonly, manager_readonly, nhan_vien_ban_hang';
     END IF;
+    -- Nhật ký câu hỏi chưa hiểu (hoc_tu_cau_chua_hieu.sql) chứa câu hỏi thô của người dùng: chỉ quản trị được đọc
+    IF to_regclass('"LinhKien".cau_hoi_chua_hieu') IS NOT NULL THEN
+        EXECUTE 'REVOKE ALL ON "LinhKien".cau_hoi_chua_hieu FROM PUBLIC, text2sql_readonly, manager_readonly, nhan_vien_ban_hang';
+    END IF;
+    IF to_regclass('"LinhKien".lich_su_huan_luyen') IS NOT NULL THEN
+        EXECUTE 'REVOKE ALL ON "LinhKien".lich_su_huan_luyen FROM PUBLIC, text2sql_readonly, manager_readonly, nhan_vien_ban_hang';
+    END IF;
 END $$;
 GRANT SELECT ON "LinhKien".mv_thong_ke_doanh_thu_thang TO text2sql_readonly;
 

@@ -1,4 +1,4 @@
-﻿"""
+"""
 MODULE AI 6: BACKUP DỮ LIỆU THÔNG MINH (AI SMART BACKUP & RECOVERY)
 Hệ thống: Cửa hàng linh kiện máy tính (LinhKien_DB, schema "LinhKien")
 Công nghệ: 100% Python Thuần (Psycopg2, OLS Regression, Decision Tree Risk Scoring, pg_dump/pg_restore, SHA-256)
@@ -56,9 +56,12 @@ class AISmartBackupEngine:
     5. Kiểm tra toàn vẹn bản backup bằng SHA-256 Checksum
     """
 
-    BACKUP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backups"))
+    _base1 = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    _base2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    _base = _base1 if os.path.exists(os.path.join(_base1, "backups")) else _base2
+    BACKUP_DIR = os.path.abspath(os.path.join(_base, "backups"))
     CHANGE_THRESHOLDS = {"HOT": 50.0, "WARM": 20.0}
-    SNAPSHOT_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "logs", "stat_snapshot.json"))
+    SNAPSHOT_FILE = os.path.abspath(os.path.join(_base, "logs", "stat_snapshot.json"))
     MIN_SNAPSHOT_GAP_HOURS = 0.25        # Cần cách ít nhất 15 phút để tính tốc độ thay đổi
     MEASURED_HOT_PCT_PER_HOUR = 1.0      # >= 1% số dòng thay đổi mỗi giờ -> HOT
     MEASURED_WARM_PCT_PER_HOUR = 0.1     # >= 0.1%/giờ -> WARM

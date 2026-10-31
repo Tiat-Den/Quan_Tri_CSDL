@@ -18,9 +18,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from app.db import execute_query
-from app.entity_extractor import extract_price_condition
-from app.knowledge_graph import HardwareNeed, get_knowledge_graph
-from app.text_normalizer import remove_diacritics
+from app.ai_1_text2sql.entity_extractor import extract_price_condition
+from app.ai_2_semantic.knowledge_graph import HardwareNeed, get_knowledge_graph
+from app.ai_1_text2sql.text_normalizer import remove_diacritics
 
 logger = logging.getLogger("ai_service.semantic_search")
 

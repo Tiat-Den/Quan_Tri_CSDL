@@ -7,9 +7,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
-from app.intent_classifier import classify_intent
-from app.knowledge_graph import get_knowledge_graph
-from app.text_normalizer import normalize_text, remove_diacritics
+from app.ai_1_text2sql.intent_classifier import classify_intent
+from app.ai_2_semantic.knowledge_graph import get_knowledge_graph
+from app.ai_1_text2sql.text_normalizer import normalize_text, remove_diacritics
 
 # Các mẫu câu hoặc từ khóa đặc trưng cho nhu cầu tư vấn cấu hình phần cứng (AI 2 - A2-5)
 CONSULTATION_SIGNALS_REGEX = re.compile(
