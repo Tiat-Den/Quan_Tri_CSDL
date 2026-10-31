@@ -62,10 +62,42 @@ if "session_id" not in st.session_state:
 def _current_username() -> str:
     user = st.session_state.get("current_user") or {}
     return user.get("username") or get_current_role(st.session_state)
+
+
+def _lockout_until() -> float:
+    """Thời điểm hết khóa của TÀI KHOẢN hiện tại (lưu phía máy chủ nên F5 / tab mới không xóa được)."""
+    left = security_lockout.remaining(_current_username())
+    return time.time() + left if left else 0
+
+
+def _lock_account() -> None:
+    security_lockout.lock(_current_username(), security_lockout.LOCKOUT_SECONDS)
+
+
+def _lock_banner_body() -> None:
+    """Thông báo khóa hiện ngay khi tải trang (kể cả sau F5), tự đếm ngược và mở khóa khi hết giờ."""
+    left = security_lockout.remaining(_current_username())
+    if left:
+        st.error(
+            f"Tài khoản «{_current_username()}» đang bị tạm khóa. "
+            f"Có thể truy vấn lại sau {left} giây."
+        )
+    else:
+        st.rerun()  # hết khóa -> vẽ lại cả trang để bật lại nút Thực thi
+
+
+# Streamlit >= 1.37: st.fragment(run_every=...) cho phép đếm ngược từng giây mà không chạy lại cả trang
+if hasattr(st, "fragment"):
+    _lock_banner = st.fragment(run_every=1)(_lock_banner_body)
+elif hasattr(st, "experimental_fragment"):
+    _lock_banner = st.experimental_fragment(run_every=1)(_lock_banner_body)
+else:
+    _lock_banner = _lock_banner_body
 from app.ai_index_advisor import AIIndexAdvisor
 from app.ai_predictive_partitioning import AIPredictivePartitioningEngine
 from app.auth import authenticate, is_admin, is_manager, get_current_role
 from app.ai_smart_backup import smart_backup_engine, AISmartBackupEngine
+from app import security_lockout
 from app.ui_theme import BASE_CSS, CHART_BLUE, badge, kpi_card, meter, section_header, sub_header
 
 # ==============================================================================
@@ -228,7 +260,7 @@ def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
         return {"success": False, "error": "Câu hỏi không được để trống"}
 
     # Kiểm tra khóa phiên tạm thời (Session Lockout) do vi phạm HIGH trước đó (A3-4)
-    lockout_until = st.session_state.get("security_lockout_until", 0)
+    lockout_until = _lockout_until()
     now_ts = time.time()
     if lockout_until > now_ts:
         remaining = int(lockout_until - now_ts)
@@ -283,7 +315,7 @@ def process_question(question_text: str, role: str = 'admin') -> Dict[str, Any]:
 
     if not sec_eval["allowed"]:
         # Khóa phiên trong 60 giây nếu đạt mức HIGH (A3-4)
-        st.session_state["security_lockout_until"] = time.time() + 60
+        _lock_account()
         return {
             "success": False,
             "error": f"Truy vấn bị chặn bởi AI 3 Zero-Trust Security Guard! Điểm rủi ro: {sec_eval['score']}/100 ({sec_eval['level_label']}). Hành động: {sec_eval['action']}",
@@ -337,7 +369,7 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
         return {"success": False, "error": "Câu hỏi không được để trống"}
 
     # CHỐT CHẶN ĐẦU VÀO: AI 3 đọc câu hỏi trước khi định tuyến (bắt cả câu không sinh ra SQL)
-    lockout_until = st.session_state.get("security_lockout_until", 0)
+    lockout_until = _lockout_until()
     if lockout_until > time.time():
         return {
             "success": False,
@@ -353,7 +385,7 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
         target_engine=target_engine,
     )
     if not q_sec["allowed"]:
-        st.session_state["security_lockout_until"] = time.time() + 60
+        _lock_account()
         return {
             "success": False,
             "engine": "AI 3",
@@ -378,7 +410,7 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
         engine.ensure_initialized()
 
         # AI 3 giám sát AI 2 trước khi trả kết quả (khóa phiên dùng chung với AI 1)
-        lockout_until = st.session_state.get("security_lockout_until", 0)
+        lockout_until = _lockout_until()
         if lockout_until > time.time():
             return {
                 "success": False,
@@ -398,7 +430,7 @@ def route_and_execute_question(question_text: str) -> Dict[str, Any]:
             seen_count=coverage_tracker.seen_count(session_id),
         )
         if not sem_sec["allowed"]:
-            st.session_state["security_lockout_until"] = time.time() + 60
+            _lock_account()
             return {
                 "success": False,
                 "engine": "AI 2",
@@ -586,6 +618,7 @@ with tab_ai12:
         "nhu cầu tư vấn linh kiện tới AI 2 (tìm kiếm ngữ nghĩa). AI 3 kiểm tra mọi câu hỏi trước khi chạy.",
         "TEX2SQL / Semantic Search"), unsafe_allow_html=True)
 
+    _lock_left = security_lockout.remaining(_current_username())
     col_input, col_btn_run, col_btn_clear = st.columns([7.2, 1.6, 1.2])
 
     with col_input:
@@ -597,7 +630,7 @@ with tab_ai12:
         )
 
     with col_btn_run:
-        btn_run = st.button("Thực thi", type="primary", use_container_width=True)
+        btn_run = st.button("Thực thi", type="primary", use_container_width=True, disabled=_lock_left > 0)
 
     with col_btn_clear:
         btn_clear = st.button("Xóa", use_container_width=True, on_click=clear_query_input)
@@ -643,6 +676,10 @@ with tab_ai12:
                     args=(s,),
                 )
 
+    # Thông báo khóa (đếm ngược) nằm dưới khung câu hỏi mẫu
+    if _lock_left:
+        _lock_banner()
+
     # Kích hoạt thực thi nếu người dùng bấm nút hoặc chọn từ câu hỏi mẫu
     should_execute = btn_run or st.session_state.auto_run
     if should_execute:
@@ -653,7 +690,9 @@ with tab_ai12:
             query_to_run = user_question.strip() or st.session_state.query_input.strip()
         st.session_state.auto_run = False
 
-        if not query_to_run:
+        if _lock_left:
+            pass  # Đang bị khóa: khung đếm ngược phía trên đã báo, không chạy câu hỏi và không in thêm thông báo
+        elif not query_to_run:
             st.warning("Vui lòng nhập câu hỏi trước khi thực thi.")
         else:
             with st.spinner("Đang phân tích câu hỏi và định tuyến..."):
@@ -735,7 +774,6 @@ with tab_ai12:
                 st.error(res.get("error"))
                 for f in (res.get("security_eval") or {}).get("factors", []):
                     st.markdown(f"- {f}")
-                st.caption("Phiên bị khóa 60 giây. Chi tiết xem ở tab Giám sát an toàn (lọc «Đầu vào»).")
                 st.session_state.history.insert(
                     0,
                     {
@@ -830,6 +868,10 @@ with tab_ai12:
                         "Trạng thái": "Ngoài phạm vi",
                     },
                 )
+
+            # Vừa bị AI 3 chặn (AI 1 / AI 2 / chốt đầu vào): hiện DUY NHẤT một khung đếm ngược thời gian khóa
+            if res.get("error_type") == "SECURITY_BLOCKED" and security_lockout.remaining(_current_username()):
+                _lock_banner()
 
 
 # ------------------------------------------------------------------------------
@@ -1053,11 +1095,9 @@ with tab_ai3:
             st.rerun()
 
     st.markdown(sub_header("Nhật ký kiểm toán (Audit Trail)"), unsafe_allow_html=True)
-    log_filter = st.radio("Lọc theo nguồn:", ["Tất cả", "Đầu vào", "AI 1", "AI 2", "Lệnh SQL"], horizontal=True, key="audit_engine_filter")
+    log_filter = st.radio("Lọc theo nguồn:", ["Tất cả", "AI 1", "AI 2", "Lệnh SQL"], horizontal=True, key="audit_engine_filter")
     recent_logs = [r for r in read_audit_log(limit=2000) if r.get("source") != "seed_lich_su"]
-    if log_filter == "Đầu vào":
-        recent_logs = [r for r in recent_logs if r.get("stage") == "Đầu vào" or r.get("engine") == "Đầu vào"]
-    elif log_filter == "AI 1":
+    if log_filter == "AI 1":
         recent_logs = [r for r in recent_logs if r.get("engine") == "AI 1"]
     elif log_filter == "AI 2":
         recent_logs = [r for r in recent_logs if r.get("engine") == "AI 2"]
@@ -1095,7 +1135,17 @@ with tab_ai3:
                 return ["background-color: #fffbeb; color: #78350f"] * len(row)
             return [""] * len(row)
 
-        st.dataframe(df_show.style.apply(_hl_blocked, axis=1), use_container_width=True, hide_index=True)
+        def _fmt_score(v):
+            # 80.000000 -> 80 ; 72.5 -> 72.5 ; ô trống giữ trống
+            try:
+                return f"{float(v):g}" if pd.notna(v) else ""
+            except (TypeError, ValueError):
+                return str(v)
+
+        _styled = df_show.style.apply(_hl_blocked, axis=1)
+        if "Điểm rủi ro" in df_show.columns:
+            _styled = _styled.format(_fmt_score, subset=["Điểm rủi ro"])
+        st.dataframe(_styled, use_container_width=True, hide_index=True)
     else:
         st.info("Chưa có bản ghi nhật ký an ninh nào cho bộ lọc này.")
 
