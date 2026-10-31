@@ -80,11 +80,7 @@ Quan_tri_csdl/Cuoi_Ky/
 │   ├── run_app.py                           # Launcher khởi động giao diện nhanh
 │   └── requirements.txt                     # Danh sách thư viện Python phụ thuộc
 │
-├── .env.example                             # Mẫu cấu hình biến môi trường
-├── UI_UPGRADE_DESIGN.md                     # Tài liệu thiết kế giao diện Clean Enterprise
-├── AI_MODULES_EXPLANATION.md                # Tài liệu giải thích chi tiết cơ chế hoạt động 6 Module AI
-├── DEMO_SCRIPT.md                           # Kịch bản demo báo cáo đồ án
-└── README.md                                # Hướng dẫn cài đặt & vận hành dự án
+└─ .env.example                             # Mẫu cấu hình biến môi trường
 ```
 
 ---
