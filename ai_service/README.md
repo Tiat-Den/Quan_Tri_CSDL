@@ -82,5 +82,3 @@ Giao diện sẽ tự động mở tại: `http://localhost:8501`
 | :--- | :--- | :--- |
 | `admin` | `admin123` | Quản trị viên (Toàn quyền 6 module) |
 | `manager` | `manager123` | Quản lý kinh doanh (AI 1, AI 2, Báo cáo) |
-| `nv01` | `password123` | Nhân viên bán hàng (Bị giới hạn bởi RLS) |
-| `guest` | `guest123` | Khách vãng lai (Chỉ tra cứu sản phẩm) |
